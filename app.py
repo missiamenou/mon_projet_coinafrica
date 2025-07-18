@@ -301,7 +301,7 @@ elif choix_action == "Voir dashboard des données":
 
             col1.metric("Nombre total d'appartements", len(df))
             col2.metric("Moyenne de pièces", f"{df['Pieces'].mean():.1f}")
-            col3.metric("Moyenne de salles de bain", f"{df['Nb_Salles_bain'].mean():.1f}")
+            col3.metric("Moyenne de salles de bain", f"{df['Salles_bain'].mean():.1f}")
             col4.metric("Superficie moyenne", f"{df['Superficie'].mean():.0f} m²")
 
             # Quartiers les plus fréquents
@@ -311,7 +311,7 @@ elif choix_action == "Voir dashboard des données":
             # Heatmap de corrélation
             st.markdown("#### 📊 Corrélation entre les variables numériques")
             fig2, ax2 = plt.subplots(figsize=(6, 4))
-            sns.heatmap(df[['Pieces', 'Nb_Salles_bain', 'Superficie']].corr(), annot=True, cmap="YlGnBu", ax=ax2)
+            sns.heatmap(df[['Pieces', 'Salles_bain', 'Superficie']].corr(), annot=True, cmap="YlGnBu", ax=ax2)
             st.pyplot(fig2)
         except Exception as e:
             st.warning(f"Erreur : {e}")
