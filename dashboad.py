@@ -15,110 +15,101 @@ def cap_outliers_iqr(df, column):
     return df
 
 def traiter_donnees_villas_(data):
-    # Charger en DataFrame si ce n'est pas déjà fait
+    import pandas as pd
+    import numpy as np
+
     if not isinstance(data, pd.DataFrame):
         data = pd.DataFrame(data)
 
-    # On sélectionne uniquement les colonnes utiles
     df = data[["Nombre_de_pieces", "Nombre_salles_bain", "Superficie", "Adresse"]].copy()
+    df.drop_duplicates(inplace=True)
 
-    # Nettoyage de la colonne 'Superficie'
-    df['Superficie'] = df['Superficie'].astype(str).str.replace(' m2', '', regex=False)
-    df['Superficie'] = pd.to_numeric(df['Superficie'], errors='coerce')
-
-    # Conversion en numérique
+    # Nettoyage et conversion des données
+    df['Superficie'] = pd.to_numeric(df['Superficie'].astype(str).str.replace(' m2', '').str.strip(), errors='coerce')
     df['Nombre_de_pieces'] = pd.to_numeric(df['Nombre_de_pieces'], errors='coerce')
     df['Nombre_salles_bain'] = pd.to_numeric(df['Nombre_salles_bain'], errors='coerce')
 
-    # Renommer les colonnes
-    df.rename(columns={
-        'Nombre_de_pieces': 'Pieces',
-        'Nombre_salles_bain': 'Salles_bain'
-    }, inplace=True)
+    df = df.rename(columns={
+        "Nombre_de_pieces": "Pieces",
+        "Nombre_salles_bain": "Salles_bain"
+    })
 
-    # Capping des outliers
-    numerical_cols = ['Pieces', 'Salles_bain', 'Superficie']
-    for col in numerical_cols:
+    for col in ["Pieces", "Salles_bain", "Superficie"]:
         df = cap_outliers_iqr(df, col)
+        df[col].fillna(df[col].median(), inplace=True)
+        df[col] = df[col].astype(int)
 
-    # Remplissage des valeurs manquantes
-    for col in numerical_cols:
-        df[col] = df[col].fillna(df[col].median())
-    # Réinitialisation des index
+    if df["Adresse"].isnull().sum() > 0:
+        df["Adresse"].fillna(df["Adresse"].mode()[0], inplace=True)
+
     return df.reset_index(drop=True)
 
 
+
 def traiter_donnees_terrains_(data):
-    # S'assurer que c'est bien un DataFrame
+    import pandas as pd
+    import numpy as np
+
     if not isinstance(data, pd.DataFrame):
         data = pd.DataFrame(data)
 
-    # Garder uniquement les colonnes utiles
     df = data[["Superficie", "Prix", "Adresse", "Lien_image-href"]].copy()
-
-    # Supprimer les doublons
     df.drop_duplicates(inplace=True)
 
-    # Nettoyage des colonnes numériques
-    df["Prix"] = pd.to_numeric(
-        df["Prix"].astype(str).str.replace(" CFA", "", regex=False).str.replace(" ", ""),
-        errors='coerce'
-    )
-    # Renommer les colonnes
+    # Nettoyage : suppression " m2", " CFA", etc.
+    df['Superficie'] = pd.to_numeric(df['Superficie'].astype(str).str.replace(' m2', '').str.strip(), errors='coerce')
+    df['Prix'] = pd.to_numeric(df['Prix'].astype(str).str.replace(' CFA', '').str.replace(' ', ''), errors='coerce')
+
+
+    for col in ["Superficie", "Prix"]:
+        df = cap_outliers_iqr(df, col)
+        df[col].fillna(df[col].median(), inplace=True)
+        df[col] = df[col].astype(int)
+
+     # Renommer les colonnes
     df.rename(columns={
         'Lien_image-href': 'Lien_image	',
     }, inplace=True)
 
-    df["Superficie"] = pd.to_numeric(
-        df["Superficie"].astype(str).str.replace(" m2", "", regex=False).str.replace(" ", ""),
-        errors='coerce'
-    )
-
-    # Capping des outliers
-    for col in ['Superficie', 'Prix']:
-        df = cap_outliers_iqr(df, col)
-
-    # Remplacer les valeurs manquantes par la médiane
-    df["Superficie"].fillna(df["Superficie"].median(), inplace=True)
-    df["Prix"].fillna(df["Prix"].median(), inplace=True)
+    if df["Adresse"].isnull().sum() > 0:
+        df["Adresse"].fillna(df["Adresse"].mode()[0], inplace=True)
 
     return df.reset_index(drop=True)
 
+
 def traiter_donnees_appartements_(data):
-    # Assurer que c’est bien un DataFrame
+    # S'assurer que c’est bien un DataFrame
     if not isinstance(data, pd.DataFrame):
         data = pd.DataFrame(data)
 
-    # Sélection des colonnes pertinentes
+    # Sélection des colonnes
     df = data[["Nombre_pieces", "Nombre_salles_bain", "Superficie", "Adresse"]].copy()
 
-    # Suppression des doublons
+    # Supprimer les doublons
     df.drop_duplicates(inplace=True)
 
-    # Nettoyage des colonnes
-    df["Superficie"] = df["Superficie"].astype(str).str.replace(" m2", "", regex=False)
-    df["Superficie"] = pd.to_numeric(df["Superficie"], errors="coerce")
+    # Nettoyage des champs texte et conversion en nombres
+    df['Superficie'] = pd.to_numeric(df['Superficie'].astype(str).str.replace(' m2', '').str.strip(), errors='coerce')
+    df['Nombre_pieces'] = pd.to_numeric(df['Nombre_pieces'], errors='coerce')
+    df['Nombre_salles_bain'] = pd.to_numeric(df['Nombre_salles_bain'], errors='coerce')
 
-    df["Nombre_salles_bain"] = df["Nombre_salles_bain"].astype(str).str.replace(" m2", "", regex=False)
-    df["Nombre_salles_bain"] = pd.to_numeric(df["Nombre_salles_bain"], errors="coerce")
-
-    df["Nombre_pieces"] = pd.to_numeric(df["Nombre_pieces"], errors="coerce")
-
-    # Renommer les colonnes
+    # Renommer
     df = df.rename(columns={
         "Nombre_pieces": "Pieces",
-        "Nombre_salles_bain": "Nb_Salles_bain"
+        "Nombre_salles_bain": "Salles_bain"
     })
 
-    # Traitement des outliers
-    numerical_cols = ["Pieces", "Nb_Salles_bain", "Superficie"]
-    for col in numerical_cols:
+    # Supprimer les outliers
+    for col in ['Pieces', 'Salles_bain', 'Superficie']:
         df = cap_outliers_iqr(df, col)
 
-    # Remplissage des valeurs manquantes
-    for col in numerical_cols:
-        df[col].fillna(df[col].median(), inplace=True)
+    # Remplir les valeurs manquantes avec la médiane (arrondi à l'entier)
+    for col in ['Pieces', 'Salles_bain', 'Superficie']:
+        mediane = int(df[col].median())
+        df[col].fillna(mediane, inplace=True)
+        df[col] = df[col].astype(int)
 
+    # Remplir les adresses manquantes
     if df["Adresse"].isnull().sum() > 0:
         df["Adresse"].fillna(df["Adresse"].mode()[0], inplace=True)
 
