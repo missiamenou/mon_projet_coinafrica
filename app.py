@@ -80,7 +80,7 @@ choix_action = st.sidebar.selectbox(
 if choix_action == "Scraper avec BeautifulSoup":
     st.subheader("📦 Scraping avec BeautifulSoup ou Selenium")
     # Sélection du nombre de pages
-    nb_pages = st.sidebar.selectbox("Nombre de pages à scraper", list(range(1, 11)), index=0)
+    nb_pages = st.sidebar.selectbox("Nombre de pages à scraper", list(range(1, 201)), index=0)
 
     st.write(f"Nombre de pages à scraper : {nb_pages}")
     st.markdown("### Choisissez une catégorie à scraper :")
